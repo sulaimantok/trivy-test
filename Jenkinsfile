@@ -1,6 +1,6 @@
 stage('Configure') {
     abort = false
-    inputConfig = input id: 'InputConfig', message: 'Docker registry and Anchore Engine configuration', parameters: [string(defaultValue: 'https://index.docker.io/v1/', description: 'URL of the docker registry for staging images before analysis', name: 'dockerRegistryUrl', trim: true), string(defaultValue: 'docker.io', description: 'Hostname of the docker registry', name: 'dockerRegistryHostname', trim: true), string(defaultValue: 'anchore28/anchore', description: 'Name of the docker repository', name: 'dockerRepository', trim: true), credentials(credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl', defaultValue: 'docker', description: 'Credentials for connecting to the docker registry', name: 'dockerCredentials', required: true), string(defaultValue: 'http://192.168.10.29:8228/v1', description: 'Anchore Engine API endpoint', name: 'anchoreEngineUrl', trim: true), credentials(credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl', defaultValue: 'anchorecreds', description: 'Credentials for interacting with Anchore Engine', name: 'anchoreEngineCredentials', required: true)]
+    inputConfig = input id: 'InputConfig', message: 'Docker registry and Anchore Engine configuration', parameters: [string(defaultValue: 'https://index.docker.io/v1/', description: 'URL of the docker registry for staging images before analysis', name: 'dockerRegistryUrl', trim: true), string(defaultValue: 'docker.io', description: 'Hostname of the docker registry', name: 'dockerRegistryHostname', trim: true), string(defaultValue: 'anchore28/anchore', description: 'Name of the docker repository', name: 'dockerRepository', trim: true), credentials(credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl', defaultValue: 'docker', description: 'Credentials for connecting to the docker registry', name: 'dockerCredentials', required: true)]
 
     for (config in inputConfig) {
         if (null == config.value || config.value.length() <= 0) {
@@ -47,10 +47,8 @@ node {
         }
       },
       Analyze: {
-        writeFile file: anchorefile, text: inputConfig['dockerRegistryHostname'] + "/" + repotag + " " + dockerfile
-        sh """ ls -ltr """  
-        sh """ cat anchore_images """  
-        anchore name: anchorefile, engineurl: inputConfig['anchoreEngineUrl'], engineCredentialsId: inputConfig['anchoreEngineCredentials'], annotations: [[key: 'added-by', value: 'jenkins']] , autoSubscribeTagUpdates: false, bailOnFail: false, engineRetries: '10000'
+        repotag = inputConfig['dockerRepository'] + ":${BUILD_NUMBER}"
+        sh(script: """trivy $repotag""")
       }
     }
 
