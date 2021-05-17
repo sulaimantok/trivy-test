@@ -1,6 +1,6 @@
 stage('Configure') {
     abort = false
-    inputConfig = input id: 'InputConfig', message: 'Docker registry and Anchore Engine configuration', parameters: [string(defaultValue: 'https://index.docker.io/v1/', description: 'URL of the docker registry for staging images before analysis', name: 'dockerRegistryUrl', trim: true), string(defaultValue: 'docker.io', description: 'Hostname of the docker registry', name: 'dockerRegistryHostname', trim: true), string(defaultValue: 'anchore28/anchore', description: 'Name of the docker repository', name: 'dockerRepository', trim: true), credentials(credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl', defaultValue: 'docker', description: 'Credentials for connecting to the docker registry', name: 'dockerCredentials', required: true)]
+    inputConfig = input id: 'InputConfig', message: 'Docker registry and configuration', parameters: [string(defaultValue: 'https://index.docker.io/v1/', description: 'URL of the docker registry for staging images before analysis', name: 'dockerRegistryUrl', trim: true), string(defaultValue: 'docker.io', description: 'Hostname of the docker registry', name: 'dockerRegistryHostname', trim: true), string(defaultValue: 'anchore28/trivy-test', description: 'Name of the docker repository', name: 'dockerRepository', trim: true), credentials(credentialType: 'com.cloudbees.plugins.credentials.impl.UsernamePasswordCredentialsImpl', defaultValue: 'docker', description: 'Credentials for connecting to the docker registry', name: 'dockerCredentials', required: true)]
 
     for (config in inputConfig) {
         if (null == config.value || config.value.length() <= 0) {
@@ -18,7 +18,6 @@ stage('Configure') {
 node {
   def app
   def dockerfile
-  def anchorefile
   def repotag
 
   try {
@@ -28,7 +27,6 @@ node {
       def path = sh returnStdout: true, script: "pwd"
       path = path.trim()
       dockerfile = path + "/Dockerfile"
-      anchorefile = path + "/anchore_images"
     }
 
     stage('Build') {
